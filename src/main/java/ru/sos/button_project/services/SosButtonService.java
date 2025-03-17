@@ -11,12 +11,16 @@ import ru.sos.button_project.repositories.SosButtonRepository;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
 public final class SosButtonService {
 
     private final SosButtonRepository sosButtonRepository;
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     private static final long ACTIVATION_TIMEOUT = 60; // seconds
     private static final long ACTIVATION_COOLDOWN = 24; // hours
@@ -44,7 +48,7 @@ public final class SosButtonService {
     /**
      * метод активации кнопки, по id пользователя
      * @param userId id пользователя
-     * @param immediate
+     * @param immediate срочность активации, если не срочно то отправляется через 60 секунд
      * @throws ButtonNotPreparedException если не найдена для данного пользователя, то есть не готова
      * @throws CannotActivateButtonException если кнопка активировалась менее чем 24 часа назад
      */
@@ -60,5 +64,15 @@ public final class SosButtonService {
         sosButton.setReady(false);
         sosButton.setLastActivatedAt(Instant.now());
         sosButtonRepository.save(sosButton);
+
+        if (immediate) {
+            alert(sosButton);
+        } else {
+            scheduler.schedule(() -> alert(sosButton), ACTIVATION_TIMEOUT, TimeUnit.SECONDS);
+        }
+    }
+
+    private void alert(SosButton sosButton) {
+        // TODO: реализовать функцию отправления уведомления в телеграмм вместе с сервисным слоем для телеграмма
     }
 }
