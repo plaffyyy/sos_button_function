@@ -8,5 +8,5 @@ import java.util.Optional;
 
 @Repository
 public interface SosButtonRepository extends JpaRepository<SosButton, Long> {
-    Optional<SosButton> findByUserIdAndReady(String userId);
+    Optional<SosButton> findByUserId(String userId);
 }

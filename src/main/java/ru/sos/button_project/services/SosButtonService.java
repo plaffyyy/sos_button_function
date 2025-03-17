@@ -53,7 +53,7 @@ public final class SosButtonService {
      * @throws CannotActivateButtonException если кнопка активировалась менее чем 24 часа назад
      */
     public void activateButton(String userId, boolean immediate) {
-        SosButton sosButton = sosButtonRepository.findByUserIdAndReady(userId)
+        SosButton sosButton = sosButtonRepository.findByUserId(userId)
                 .orElseThrow(() -> new ButtonNotPreparedException("Кнопка не готова к использованию"));
 
         if (sosButton.getLastActivatedAt() != null &&
@@ -75,4 +75,19 @@ public final class SosButtonService {
     private void alert(SosButton sosButton) {
         // TODO: реализовать функцию отправления уведомления в телеграмм вместе с сервисным слоем для телеграмма
     }
+
+    /**
+     * функция деактивации кнопка, где при неправильном коде, отправляются данные
+     * @param userId id пользователя
+     * @param code код деактивации
+     */
+    public void deactivateButton(String userId, String code) {
+        SosButton sosButton = sosButtonRepository.findByUserId(userId)
+                .orElseThrow(() -> new ButtonNotPreparedException("Кнопка не активирована"));
+        if (!sosButton.getActivationCode().equals(code)) {
+            alert(sosButton);
+        }
+        sosButtonRepository.delete(sosButton);
+    }
+
 }
